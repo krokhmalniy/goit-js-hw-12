@@ -58,7 +58,6 @@ formSearch.addEventListener('submit', async event => {
       showLoadMoreButton();
       const galleryItem = document.querySelector('.gallery-item');
       heightStatsItem = galleryItem.getBoundingClientRect().height;
-      console.log(heightStatsItem);
     }
   } catch (error) {
     iziToast.error({
