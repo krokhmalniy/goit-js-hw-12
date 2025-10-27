@@ -36,7 +36,7 @@ export function createGallery(images) {
     .join('');
 
   gallery.insertAdjacentHTML('beforeend', insertion);
-  lightbox.refresh();
+  lightbox.refresh();  
 }  
 
 export function clearGallery() {
@@ -57,4 +57,14 @@ export function hideLoader() {
   const load = document.querySelector('.loader');
   load.hidden = true;
   load.classList.remove('load');
+}
+
+export function showLoadMoreButton() {
+  const loadButton = document.querySelector('.load-button');
+  loadButton.hidden = false;
+}
+
+export function hideLoadMoreButton() {
+  const loadButton = document.querySelector('.load-button');
+  loadButton.hidden = true;
 }
