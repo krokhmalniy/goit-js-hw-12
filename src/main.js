@@ -6,7 +6,7 @@ import {
   showLoadMoreButton,
   hideLoadMoreButton,
 } from './js/render-functions';
-import { getImagesByQuery } from './js/pixabay-api';
+import { getImagesByQuery, per_page } from './js/pixabay-api';
 import iziToast from 'izitoast';
 import 'izitoast/dist/css/iziToast.min.css';
 import iconOctagon from '../src/img/bi_x-octagon.svg';
@@ -17,17 +17,15 @@ const formText = document.querySelector('.form-text');
 const submitButton = document.querySelector('.submit-button');
 const loadButton = document.querySelector('.load-button');
 let formTextValue = formText.value.trim().toLowerCase();
-let num = 1;
-let newNum;
+let defaultPage = 1;
+let totalPages;
 let heightStatsItem;
 
 formSearch.addEventListener('submit', async event => {
   event.preventDefault();
-  num = 1;
 
   formTextValue = formText.value.trim().toLowerCase();
   if (!formTextValue) {
-    formText.value = '';
     return iziToast.info({
       message: 'Please enter the query parameters',
       messageColor: '#FAFAFB',
@@ -35,10 +33,11 @@ formSearch.addEventListener('submit', async event => {
     });
   }
 
-  showLoader();
   submitButton.disabled = true;
-
+  hideLoadMoreButton();
+  showLoader();
   clearGallery();
+  defaultPage = 1;
 
   try {
     const response = await getImagesByQuery(formTextValue);
@@ -53,11 +52,13 @@ formSearch.addEventListener('submit', async event => {
       });
     }
     createGallery(response.data.hits);
-    newNum = response.data.totalHits;
-    if (newNum > num) {
+    totalPages = Math.ceil(response.data.totalHits / per_page);
+    if (defaultPage < totalPages) {
       showLoadMoreButton();
       const galleryItem = document.querySelector('.gallery-item');
       heightStatsItem = galleryItem.getBoundingClientRect().height;
+    } else {
+      hideLoadMoreButton();
     }
   } catch (error) {
     iziToast.error({
@@ -67,19 +68,17 @@ formSearch.addEventListener('submit', async event => {
   } finally {
     hideLoader();
     submitButton.disabled = false;
-    formText.value = '';
   }
 });
 
-
 loadButton.addEventListener('click', async event => {
   event.preventDefault();
-
+  hideLoadMoreButton();
   showLoader();
 
-  num++;
+  defaultPage++;
   try {
-    const response = await getImagesByQuery(formTextValue, num);
+    const response = await getImagesByQuery(formTextValue, defaultPage);
     createGallery(response.data.hits);
   } catch (error) {
     iziToast.error({
@@ -89,15 +88,17 @@ loadButton.addEventListener('click', async event => {
   } finally {
     hideLoader();
     window.scrollBy({
-      top: (heightStatsItem * 2),
+      top: heightStatsItem * 2,
       behavior: 'smooth',
     });
-    if (newNum <= num) {
+    if (defaultPage >= totalPages) {
       hideLoadMoreButton();
       iziToast.warning({
         message: "We're sorry, but you've reached the end of search results.",
         closeOnEscape: true,
       });
+    } else {
+      showLoadMoreButton();
     }
   }
 });
